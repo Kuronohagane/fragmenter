@@ -6,19 +6,24 @@ import random
 class Fragmenter:
     """
      Class used for fragmenting drives.
-     Use by passing drive path to constructor, e.q. ' "D:/" ', then call the instance's "fragmentDrive()" method.
-     It requires 4 garbage data text files of ideally slightly different sizes (not multiples)
-     called "source1", "source2" etc, stored at the specified path. These will be used to fragment the drive.
+     Use by passing drive path to constructor, e.q. ' "D:/" ', then call the resulting instance's "fragmentDrive()"
+     method. It requires garbage data text files of slightly different sizes (not multiples) called "source1.txt" and
+     "source2.txt", etc, stored at the specified drive path. These will be copied to fragment the drive.
+     Change the "source_file_max_number" to utilize more or less files (make sure to put them in the directory).
     """
     drive_path = ""
+    source_file_max_number = 3
 
     def __init__(self, drive_path):
+        """
+         Initialization. Checking if specified directory exists and has the source garbage data files required.
+        """
         random.seed()
         self.drive_path = drive_path
-        if path.exists(self.path):
-            for i in range(1, 4):
+        if path.isdir(self.drive_path):
+            for i in range(1, self.source_file_max_number + 1):
                 if not path.exists(self.drive_path + "source" + str(i) + ".txt"):
-                    raise FileNotFoundError("Couldn't find source garbage data files required for drive fragmentation.")
+                    raise FileNotFoundError("Couldn't find the source" + str(i) + ".txt file.")
         else:
             raise FileNotFoundError("Couldn't find the specified drive.")
 
@@ -38,22 +43,22 @@ class Fragmenter:
 
     def fill_drive_on_alternating_file_branches(self):
         """
-         Fills the drive's both file branches with files of random sizes in alternating order, meaning a file is written
-         to one branch, then the next one is written to the other, then the first one again and so on.
+         Fills the drive's both file branches with files of different sizes in alternating order, meaning a file is
+         written to one branch, then the next one is written to the other, then the first one again and so on.
         """
         file_counter = 0
         try:
             while True:
-                copyfile(self.drive_path + "source" + str(random.randint(1, 4)) + ".txt",
+                copyfile(self.drive_path + "source" + str(random.randint(1, self.source_file_max_number)) + ".txt",
                          self.drive_path + "branch1/data" + str(file_counter) + ".txt")
 
-                copyfile(self.drive_path + "source" + str(random.randint(1, 4)) + ".txt",
+                copyfile(self.drive_path + "source" + str(random.randint(1, self.source_file_max_number)) + ".txt",
                          self.drive_path + "branch2/data" + str(file_counter) + ".txt")
                 file_counter += 1
 
         except OSError as error:
             if error.args[0] == 28: # disk full error
-                print("Disk has been filled with garbage data")
+                print("Drive's file branches have been filled with " + str(file_counter) + " files of garbage data")
             else:
                 raise
 
@@ -64,7 +69,7 @@ class Fragmenter:
         if path.exists(self.drive_path + "branch" + str(branch_number)):
             rmtree(self.drive_path + "branch" + str(branch_number))
         makedirs(self.drive_path + "branch" + str(branch_number))
-        print("Branch " + str(branch_number) + " has been deleted")
+        print("Branch " + str(branch_number) + " has been cleared")
 
     def fill_file_branch(self, branch_number):
         """
@@ -73,20 +78,20 @@ class Fragmenter:
         file_counter = 0
         try:
             while True:
-                copyfile(self.drive_path + "source" + str(random.randint(1, 4)) + ".txt",
+                copyfile(self.drive_path + "source" + str(random.randint(1, self.source_file_max_number)) + ".txt",
                          self.drive_path + "branch" + str(branch_number) + "/data" + str(file_counter) + ".txt")
                 file_counter += 1
 
         except OSError as error:
             if error.args[0] == 28:  # disk full error
-                print("Branch " + str(branch_number) + " has been filled with garbage data")
+                print("Branch " + str(branch_number) + " has been filled with " + str(file_counter) + " files of garbage data")
             else:
                 raise
 
     def fragment_drive(self, number_of_iterations=1):
         """
-         Fragments a drive of the path passed in the class constructor by filling it with files of various sizes,
-         then deleting every other file, and filling the created holes in drive space with more files which don't
+         Fragments a drive of the path passed in the class constructor by filling it with files of different sizes,
+         then deleting every other file, and filling the created holes in drive space with more files which often don't
          perfectly fit, causing the new files to be split across these free spaces between the original files.
          Then, it repeats this for the other branch. Such an iteration can be done several times to further increase
          the severity of fragmentation, but there are diminishing returns.
@@ -105,5 +110,9 @@ class Fragmenter:
         print("Fragmentation finished.")
         
 
-frag = Fragmenter("insert drive path here")  # for example, "D:/". Make sure to specify the correct drive.
+# ------------------USAGE--------------------
+
+frag = Fragmenter("insert drive path string here")
+# For example, 'Fragment("D:/")'. Remember to put source garbage data files to be copied, called "source1.txt" etc.
+# Make sure to type the correct drive path, because it gets flooded with garbage data quickly.
 frag.fragment_drive()
