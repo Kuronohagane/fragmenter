@@ -2,24 +2,17 @@ from shutil import copyfile, rmtree
 from os import remove, path, makedirs
 import random
 
-diskPath = "D:/"
-numberOfIterations = 3
-
 
 class Fragmenter:
 
     diskPath = ""
-    numberOfIterations = 1
-    fileCounter = 0
-    currentBranch = 1
-    
-    def __init__(self, diskPath, numberOfIterations = 1):
+
+    def __init__(self, diskPath):
         random.seed()
         self.diskPath = diskPath
-        self.numberOfIterations = numberOfIterations
 
 
-    def initBranches(self):
+    def initFileBranches(self):
 
         if path.exists(self.diskPath + "branch1"):
             rmtree(self.diskPath + "branch1")
@@ -30,54 +23,63 @@ class Fragmenter:
         makedirs(self.diskPath + "branch2")
 
 
-    def populateDriveWithFiles(self):
-
-        # populate drive with garbage files of random sizes in alternating "branches" (folders) until it's full
+    def fillDriveOnAlternatingFileBranches(self):
+        
+        fileCounter = 0
         try:
             while True:
                 copyfile(self.diskPath + "source" + str(random.randint(1, 4)) + ".txt",
-                         self.diskPath + "branch1/data" + str(self.fileCounter) + ".txt")
+                         self.diskPath + "branch1/data" + str(fileCounter) + ".txt")
 
                 copyfile(self.diskPath + "source" + str(random.randint(1, 4)) + ".txt",
-                         self.diskPath + "branch2/data" + str(self.fileCounter) + ".txt")
-                self.fileCounter += 1
-        except OSError as e:
-            if e.args[0] != 28:
+                         self.diskPath + "branch2/data" + str(fileCounter) + ".txt")
+                fileCounter += 1
+        except OSError as diskFullError:
+            if diskFullError.args[0] != 28:
                 # if it's not the "disk full" exception (error code 28), send it up
                 raise
             else:
-                print("Disk has been populated with garbage data")
+                print("Disk has been filled with garbage data")
 
-    def fragmentPopulatedDrive(self):
+    def clearFileBranch(self, branchNumber):
+        
+        if path.exists(self.diskPath + "branch" + str(branchNumber)):
+            rmtree(self.diskPath + "branch" + str(branchNumber))
+        makedirs(self.diskPath + "branch" + str(branchNumber))
+        print("Branch " + str(branchNumber) + " has been deleted")
 
-        for iterationCounter in range(1, self.numberOfIterations + 1):
-            # delete currently considered branch (every second file)
-            print("Entering iteration " + str(iterationCounter))
-            while self.fileCounter > 0:
-                try:
-                    remove(self.diskPath + "branch" + str(self.currentBranch) + "/data" + str(self.fileCounter) + ".txt")
-                except FileNotFoundError:
-                    pass
-                self.fileCounter -= 1
-            print("Branch " + str(self.currentBranch) + " has been deleted")
-
-            # repopulate the deleted branch with files of different random sizes
-            try:
-                while True:
-                    copyfile(self.diskPath + "source" + str(random.randint(1, 4)) + ".txt",
-                             self.diskPath + "branch" + str(self.currentBranch) + "/data" + str(self.fileCounter) + ".txt")
-                    self.fileCounter += 1
-            except:
-                print("Branch " + str(self.currentBranch) + " has been repopulated" )
-
-            # change the current branch to the other one
-            if self.currentBranch == 1:
-                self.currentBranch = 2
+    def fillFileBranch(self, branchNumber):
+        
+        fileCounter = 0
+        try:
+            while True:
+                copyfile(self.diskPath + "source" + str(random.randint(1, 4)) + ".txt",
+                         self.diskPath + "branch" + str(branchNumber) + "/data" + str(fileCounter) + ".txt")
+                fileCounter += 1
+                
+        except OSError as diskFullError:
+            if diskFullError.args[0] != 28:
+                # if it's not the "disk full" exception (error code 28), send it up
+                raise
             else:
-                self.currentBranch = 1
+                print("Branch " + str(branchNumber) + " has been filled with garbage data")
 
+    def fragmentDrive(self, numberOfIterations = 1):
 
-frag = Fragmenter(diskPath)
-frag.initBranches()
-frag.fragmentDisk()
+        self.initFileBranches()
+        self.fillDriveOnAlternatingFileBranches()
+        
+        currentBranchNumber = 1
+        for i in range(1, numberOfIterations + 1):
+            print("Entering iteration " + str(i))
+            self.clearFileBranch(currentBranchNumber)
+            self.fillFileBranch(currentBranchNumber)
 
+            if currentBranchNumber == 1:
+                currentBranchNumber = 2
+            else:
+                currentBranchNumber = 1
+        
+
+frag = Fragmenter("D:/")
+frag.fragmentDrive()
