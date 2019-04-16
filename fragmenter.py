@@ -31,7 +31,6 @@ class Fragmenter:
         """
          Creates 2 "branch" folders which are used to store files written to the drive in alternating order.
          (or clears them if they already exist)
-         One branch is supposed to store the odd-written files, and the other stores the even-written files.
         """
         if path.exists(self.drive_path + "branch1"):
             rmtree(self.drive_path + "branch1")
