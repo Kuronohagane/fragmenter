@@ -6,13 +6,21 @@ import random
 class Fragmenter:
     """
      Class used for fragmenting drives.
-     Use by passing drive path to constructor, e.q. "D:/", then call the instance's "fragmentDrive()" method.
+     Use by passing drive path to constructor, e.q. ' "D:/" ', then call the instance's "fragmentDrive()" method.
+     It requires 4 garbage data text files of ideally slightly different sizes (not multiples)
+     called "source1", "source2" etc, stored at the specified path. These will be used to fragment the drive.
     """
     drive_path = ""
 
     def __init__(self, drive_path):
         random.seed()
         self.drive_path = drive_path
+        if path.exists(self.path):
+            for i in range(1, 4):
+                if not path.exists(self.drive_path + "source" + str(i) + ".txt"):
+                    raise FileNotFoundError("Couldn't find source garbage data files required for drive fragmentation.")
+        else:
+            raise FileNotFoundError("Couldn't find the specified drive.")
 
     def init_file_branches(self):
         """
@@ -80,26 +88,22 @@ class Fragmenter:
          Fragments a drive of the path passed in the class constructor by filling it with files of various sizes,
          then deleting every other file, and filling the created holes in drive space with more files which don't
          perfectly fit, causing the new files to be split across these free spaces between the original files.
-         Such an iteration can be done several times to further increase the severity of fragmentation, but there are
-         diminishing returns.
+         Then, it repeats this for the other branch. Such an iteration can be done several times to further increase
+         the severity of fragmentation, but there are diminishing returns.
         """
         print("Commencing fragmentation.")
         self.init_file_branches()
         self.fill_drive_on_alternating_file_branches()
 
-        current_branch_number = 1
         for i in range(1, number_of_iterations + 1):
             print("Entering fragmentation iteration " + str(i) + ":")
-            self.clear_file_branch(current_branch_number)
-            self.fill_file_branch(current_branch_number)
-
-            if current_branch_number == 1:
-                current_branch_number = 2
-            else:
-                current_branch_number = 1
+            self.clear_file_branch(1)
+            self.fill_file_branch(1)
+            self.clear_file_branch(2)
+            self.fill_file_branch(2)
 
         print("Fragmentation finished.")
         
 
-frag = Fragmenter("D:/")
+frag = Fragmenter("insert drive path here")  # for example, "D:/". Make sure to specify the correct drive.
 frag.fragment_drive()
