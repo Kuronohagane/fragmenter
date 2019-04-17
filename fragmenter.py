@@ -1,6 +1,7 @@
 from shutil import copyfile, rmtree
 from os import path, makedirs
 import random
+from pathlib import Path
 
 
 class Fragmenter:
@@ -11,7 +12,7 @@ class Fragmenter:
      "source2.txt", etc, stored at the specified drive path. These will be copied to fragment the drive.
      Change the "source_file_max_number" to utilize more or less files (make sure to put them in the directory).
     """
-    drive_path = ""
+    drive_path = Path("")
     source_file_max_number = 3
 
     def __init__(self, drive_path):
@@ -19,10 +20,10 @@ class Fragmenter:
          Initialization. Checking if specified directory exists and has the source garbage data files required.
         """
         random.seed()
-        self.drive_path = drive_path
-        if path.isdir(self.drive_path):
+        self.drive_path = Path(drive_path)
+        if self.drive_path.exists():
             for i in range(1, self.source_file_max_number + 1):
-                if not path.exists(self.drive_path + "source" + str(i) + ".txt"):
+                if not (Path(self.drive_path, "source" + str(i) + ".txt")).exists():
                     raise FileNotFoundError("Couldn't find the source" + str(i) + ".txt file.")
         else:
             raise FileNotFoundError("Couldn't find the specified drive.")
@@ -32,13 +33,15 @@ class Fragmenter:
          Creates 2 "branch" folders which are used to store files written to the drive in alternating order.
          (or clears them if they already exist)
         """
-        if path.exists(self.drive_path + "branch1"):
-            rmtree(self.drive_path + "branch1")
-        makedirs(self.drive_path + "branch1")
+        branch1_path = Path(self.drive_path, "branch1")
+        if branch1_path.exists():
+            rmtree(branch1_path)
+        makedirs(branch1_path)
 
-        if path.exists(self.drive_path + "branch2"):
-            rmtree(self.drive_path + "branch2")
-        makedirs(self.drive_path + "branch2")
+        branch2_path = Path(self.drive_path, "branch2")
+        if branch2_path.exists():
+            rmtree(branch2_path)
+        makedirs(branch2_path)
 
     def fill_drive_on_alternating_file_branches(self):
         """
@@ -48,11 +51,14 @@ class Fragmenter:
         file_counter = 0
         try:
             while True:
-                copyfile(self.drive_path + "source" + str(random.randint(1, self.source_file_max_number)) + ".txt",
-                         self.drive_path + "branch1/data" + str(file_counter) + ".txt")
+                random_source_file_1_path = Path(self.drive_path, "source" + str(random.randint(1, self.source_file_max_number)) + ".txt")
+                branch1_destination_file_path = Path(self.drive_path, "branch1", "data" + str(file_counter) + ".txt")
 
-                copyfile(self.drive_path + "source" + str(random.randint(1, self.source_file_max_number)) + ".txt",
-                         self.drive_path + "branch2/data" + str(file_counter) + ".txt")
+                random_source_file_2_path = Path(self.drive_path, "source" + str(random.randint(1, self.source_file_max_number)) + ".txt")
+                branch2_destination_file_path = Path(self.drive_path, "branch2", "data" + str(file_counter) + ".txt")
+                
+                copyfile(random_source_file_1_path, branch1_destination_file_path)
+                copyfile(random_source_file_2_path, branch2_destination_file_path)
                 file_counter += 1
 
         except OSError as error:
@@ -65,9 +71,10 @@ class Fragmenter:
         """
          Deletes the contents of the branch of the given number.
         """
-        if path.exists(self.drive_path + "branch" + str(branch_number)):
-            rmtree(self.drive_path + "branch" + str(branch_number))
-        makedirs(self.drive_path + "branch" + str(branch_number))
+        branch_path = Path(self.drive_path, "branch" + str(branch_number))
+        if branch_path.exists():
+            rmtree(branch_path)
+        makedirs(branch_path)
         print("Branch " + str(branch_number) + " has been cleared")
 
     def fill_file_branch(self, branch_number):
@@ -77,8 +84,10 @@ class Fragmenter:
         file_counter = 0
         try:
             while True:
-                copyfile(self.drive_path + "source" + str(random.randint(1, self.source_file_max_number)) + ".txt",
-                         self.drive_path + "branch" + str(branch_number) + "/data" + str(file_counter) + ".txt")
+                random_source_file_path = Path(self.drive_path, "source" + str(random.randint(1, self.source_file_max_number)) + ".txt")
+                branch_destination_file_path = Path(self.drive_path, "branch" + str(branch_number), "data" + str(file_counter) + ".txt")
+
+                copyfile(random_source_file_path, branch_destination_file_path)
                 file_counter += 1
 
         except OSError as error:
@@ -111,7 +120,6 @@ class Fragmenter:
 
 # ------------------USAGE--------------------
 
-frag = Fragmenter("insert drive path string here")
-# For example, 'Fragment("D:/")'. Remember to put source garbage data files to be copied, called "source1.txt" etc.
-# Make sure to type the correct drive path, because it gets flooded with garbage data quickly.
-frag.fragment_drive()
+Fragmenter("D:").fragment_drive()
+
+
