@@ -1,5 +1,5 @@
 from shutil import copyfile, rmtree
-from os import path, makedirs
+from os import makedirs
 import random
 from pathlib import Path
 
