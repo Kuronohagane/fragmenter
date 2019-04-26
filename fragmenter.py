@@ -1,16 +1,16 @@
 from shutil import copyfile, rmtree
+from pathlib import Path
 from os import makedirs
 import random
-from pathlib import Path
-import string
 import sys
-
+import string
+import time
 
 class Fragmenter:
     """
      Class used for fragmenting drives.
      Use by passing drive path to constructor, e.q. ' "D:/" ' along with the smaller and larger source junk data file
-     sizes in kilobytes, then call the resulting instance's "fragmentDrive()" method.
+     sizes in kilobytes, then call the resulting instance's "fragment_drive()" method.
     """
     drive_path = Path("")
     smaller_source_data_file_size = 0
@@ -78,10 +78,8 @@ class Fragmenter:
         branch_path = Path(self.drive_path, "branch" + str(branch_number))
         if branch_path.exists():
             rmtree(branch_path)
-        try:
-            makedirs(branch_path)
-        except PermissionError:
-            print("Permission error, try running the script again. It should work eventually.")
+            time.sleep(0.5)  # permission error otherwise, from trying to create a folder instantly after deleting it
+        makedirs(branch_path)
 
         print("Branch " + str(branch_number) + " has been cleared...")
 
@@ -131,11 +129,12 @@ class Fragmenter:
 
 # Drive path, smaller file in kilobytes, larger file in kilobytes.
 
-# Fragmenter("D:", 600, 1800).fragment_drive()
+# Fragmenter("E:", 14, 43).fragment_drive()
+
 
 try:
     Fragmenter(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).fragment_drive()
 except IndexError:
     print("Parameters: drive path, smaller junk file size and larger junk file size, "
-          "e.q. 'python fragmenter.py D:/ 600 1200'")
+          "e.q. 'python fragmenter.py D:/ 600 1300'")
 
