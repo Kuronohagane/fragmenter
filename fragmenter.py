@@ -59,12 +59,13 @@ class Fragmenter:
                 branch2_destination_file_path = Path(self.drive_path, "branch2", "data" + str(file_counter) + ".txt")
                 copyfile(smaller_source_file_path, branch2_destination_file_path)
 
+                sys.stdout.write("\rCreated " + str(file_counter) + " files of size " + str(self.smaller_source_data_file_size) + "kb " )
+                sys.stdout.flush()
                 file_counter += 1
 
         except OSError as error:
             if error.args[0] == 28: # disk full error
-                print("Drive's file branches have been filled with " + str(file_counter) +
-                      " " + str(self.smaller_source_data_file_size) + "kb files of junk data...")
+                print("- drive's file branches have been filled with junk data... ")
             else:
                 raise
 
@@ -78,7 +79,7 @@ class Fragmenter:
         branch_path = Path(self.drive_path, "branch" + str(branch_number))
         if branch_path.exists():
             rmtree(branch_path)
-            time.sleep(0.5)  # permission error otherwise, from trying to create a folder instantly after deleting it
+            time.sleep(1.5)  # permission error otherwise, from trying to create a folder instantly after deleting it
         makedirs(branch_path)
 
         print("Branch " + str(branch_number) + " has been cleared...")
@@ -94,12 +95,16 @@ class Fragmenter:
                 branch_destination_file_path = Path(self.drive_path, "branch" + str(branch_number), "data" + str(file_counter) + ".txt")
 
                 copyfile(larger_source_file_path, branch_destination_file_path)
+
+                sys.stdout.write("\rCreated " + str(file_counter) + " files of size " + str(
+                    self.smaller_source_data_file_size) + "kb ")
+                sys.stdout.flush()
+
                 file_counter += 1
 
         except OSError as error:
             if error.args[0] == 28:  # disk full error
-                print("Branch " + str(branch_number) + " has been filled with " + str(file_counter) +
-                      " " + str(self.larger_source_data_file_size) + "kb files of junk data...")
+                print("- branch " + str(branch_number) + " has been filled with junk data...")
             else:
                 raise
 
@@ -110,7 +115,7 @@ class Fragmenter:
          fit, causing the new files to be split across these free spaces between the original files. Then, it repeats
          this process for the other branch.
         """
-        print("Commencing fragmentation.")
+        print("Commencing fragmentation on drive " + str(self.drive_path) + "...")
 
         self.clear_file_branch(1)
         self.clear_file_branch(2)
@@ -129,12 +134,12 @@ class Fragmenter:
 
 # Drive path, smaller file in kilobytes, larger file in kilobytes.
 
-# Fragmenter("E:", 14, 43).fragment_drive()
+Fragmenter("D:", 600, 1200).fragment_drive()
 
 
-try:
-    Fragmenter(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).fragment_drive()
-except IndexError:
-    print("Parameters: drive path, smaller junk file size and larger junk file size, "
-          "e.q. 'python fragmenter.py D:/ 600 1300'")
+# try:
+#     Fragmenter(sys.argv[1], int(sys.argv[2]), int(sys.argv[3])).fragment_drive()
+# except IndexError:
+#     print("Parameters: drive path, smaller junk file size and larger junk file size, "
+#           "e.q. 'python fragmenter.py D:/ 600 1300'")
 
